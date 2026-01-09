@@ -1,13 +1,209 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useRef } from 'react';
+import { Eye, Download } from 'lucide-react';
+import Layout from '@/components/layout/Layout';
+import ClientDataForm from '@/components/quotation/ClientDataForm';
+import ISOSelectionTable from '@/components/quotation/ISOSelectionTable';
+import PriceSummary from '@/components/quotation/PriceSummary';
+import QuotationPreview from '@/components/quotation/QuotationPreview';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { ClientData, SelectedISO } from '@/types/quotation';
+import { useApp } from '@/context/AppContext';
+import { useToast } from '@/hooks/use-toast';
+import html2pdf from 'html2pdf.js';
 
 const Index = () => {
+  const { getNextQuotationCode, addQuotation } = useApp();
+  const { toast } = useToast();
+  const previewRef = useRef<HTMLDivElement>(null);
+  const [showPreview, setShowPreview] = useState(false);
+
+  const currentYear = new Date().getFullYear();
+  const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, '0');
+
+  const [clientData, setClientData] = useState<ClientData>({
+    ruc: '',
+    razonSocial: '',
+    representante: '',
+    celular: '',
+    correo: '',
+    asesorId: '',
+    year: currentYear,
+    month: currentMonth,
+    codigo: getNextQuotationCode(currentYear, currentMonth),
+  });
+
+  const [selectedISOs, setSelectedISOs] = useState<SelectedISO[]>([]);
+  const [discount, setDiscount] = useState(0);
+
+  const validateForm = (): boolean => {
+    if (!clientData.ruc || clientData.ruc.length !== 11) {
+      toast({
+        title: 'Error de validación',
+        description: 'El RUC debe tener 11 dígitos',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    if (!clientData.razonSocial) {
+      toast({
+        title: 'Error de validación',
+        description: 'La razón social es obligatoria',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    if (!clientData.representante) {
+      toast({
+        title: 'Error de validación',
+        description: 'El nombre del representante es obligatorio',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    if (!clientData.celular || clientData.celular.length !== 9) {
+      toast({
+        title: 'Error de validación',
+        description: 'El celular debe tener 9 dígitos',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    if (!clientData.asesorId) {
+      toast({
+        title: 'Error de validación',
+        description: 'Debe seleccionar un asesor',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    if (selectedISOs.length === 0) {
+      toast({
+        title: 'Error de validación',
+        description: 'Debe seleccionar al menos una normativa ISO',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    return true;
+  };
+
+  const handlePreview = () => {
+    if (!validateForm()) return;
+    setShowPreview(true);
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!validateForm()) return;
+
+    // Show preview first to ensure ref is populated
+    setShowPreview(true);
+
+    // Wait for dialog to render
+    setTimeout(async () => {
+      if (previewRef.current) {
+        const options = {
+          margin: [10, 10, 10, 10] as [number, number, number, number],
+          filename: `${clientData.codigo}.pdf`,
+          image: { type: 'jpeg' as const, quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
+        };
+
+        try {
+          await html2pdf().set(options).from(previewRef.current).save();
+
+          // Save quotation to history
+          const subtotal = selectedISOs.reduce((sum, sel) => {
+            let total = 0;
+            if (sel.certification) total += sel.certificationPrice;
+            if (sel.followUp) total += sel.followUpPrice;
+            if (sel.recertification) total += sel.recertificationPrice;
+            return sum + total;
+          }, 0);
+
+          const igv = subtotal * 0.18;
+          const totalConIGV = subtotal + igv;
+          const discountAmount = totalConIGV * (discount / 100);
+          const finalTotal = totalConIGV - discountAmount;
+
+          addQuotation({
+            id: Date.now().toString(),
+            code: clientData.codigo,
+            date: new Date().toISOString(),
+            client: clientData,
+            selectedISOs,
+            subtotal,
+            igv,
+            discount,
+            total: finalTotal,
+            status: 'draft',
+          });
+
+          toast({
+            title: 'PDF generado',
+            description: 'La cotización se ha descargado correctamente',
+          });
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description: 'No se pudo generar el PDF',
+            variant: 'destructive',
+          });
+        }
+      }
+    }, 500);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <Layout>
+      <div className="flex justify-end gap-3 mb-6">
+        <Button
+          variant="outline"
+          onClick={handlePreview}
+          className="flex items-center gap-2"
+        >
+          <Eye className="w-4 h-4" />
+          Vista Previa
+        </Button>
+        <Button
+          onClick={handleDownloadPDF}
+          className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+        >
+          <Download className="w-4 h-4" />
+          Descargar PDF
+        </Button>
       </div>
-    </div>
+
+      <div className="space-y-6">
+        <ClientDataForm data={clientData} onChange={setClientData} />
+        <ISOSelectionTable selectedISOs={selectedISOs} onChange={setSelectedISOs} />
+        <PriceSummary
+          selectedISOs={selectedISOs}
+          discount={discount}
+          onDiscountChange={setDiscount}
+        />
+      </div>
+
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Vista Previa de Cotización</DialogTitle>
+          </DialogHeader>
+          <QuotationPreview
+            ref={previewRef}
+            client={clientData}
+            selectedISOs={selectedISOs}
+            discount={discount}
+          />
+        </DialogContent>
+      </Dialog>
+    </Layout>
   );
 };
 

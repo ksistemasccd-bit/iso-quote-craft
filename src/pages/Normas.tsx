@@ -1,0 +1,304 @@
+import { useState } from 'react';
+import { Plus, Pencil, Trash2, Award } from 'lucide-react';
+import Layout from '@/components/layout/Layout';
+import { useApp } from '@/context/AppContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { ISOStandard } from '@/types/quotation';
+import { useToast } from '@/hooks/use-toast';
+
+const Normas = () => {
+  const { isoStandards, addISOStandard, updateISOStandard, deleteISOStandard } = useApp();
+  const { toast } = useToast();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingISO, setEditingISO] = useState<ISOStandard | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const [formData, setFormData] = useState({
+    code: '',
+    name: '',
+    description: '',
+    certificationPrice: 0,
+    followUpPrice: 0,
+    recertificationPrice: 0,
+  });
+
+  const resetForm = () => {
+    setFormData({
+      code: '',
+      name: '',
+      description: '',
+      certificationPrice: 0,
+      followUpPrice: 0,
+      recertificationPrice: 0,
+    });
+    setEditingISO(null);
+  };
+
+  const openCreateDialog = () => {
+    resetForm();
+    setIsDialogOpen(true);
+  };
+
+  const openEditDialog = (iso: ISOStandard) => {
+    setEditingISO(iso);
+    setFormData({
+      code: iso.code,
+      name: iso.name,
+      description: iso.description,
+      certificationPrice: iso.certificationPrice,
+      followUpPrice: iso.followUpPrice,
+      recertificationPrice: iso.recertificationPrice,
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleSubmit = () => {
+    if (!formData.code.trim() || !formData.name.trim()) {
+      toast({
+        title: 'Error',
+        description: 'El código y nombre son obligatorios',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (editingISO) {
+      updateISOStandard({
+        ...editingISO,
+        ...formData,
+      });
+      toast({
+        title: 'Norma actualizada',
+        description: 'La norma ISO se ha actualizado correctamente',
+      });
+    } else {
+      addISOStandard({
+        id: Date.now().toString(),
+        ...formData,
+      });
+      toast({
+        title: 'Norma agregada',
+        description: 'La nueva norma ISO se ha agregado correctamente',
+      });
+    }
+
+    setIsDialogOpen(false);
+    resetForm();
+  };
+
+  const handleDelete = () => {
+    if (deleteId) {
+      deleteISOStandard(deleteId);
+      toast({
+        title: 'Norma eliminada',
+        description: 'La norma ISO se ha eliminado correctamente',
+      });
+      setDeleteId(null);
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return `S/ ${amount.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`;
+  };
+
+  return (
+    <Layout>
+      <div className="card-corporate">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          <div className="section-title mb-0">
+            <span className="section-number">
+              <Award className="w-4 h-4" />
+            </span>
+            <span>Gestión de Normas ISO</span>
+          </div>
+          <Button onClick={openCreateDialog} className="flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            Nueva Norma
+          </Button>
+        </div>
+
+        {isoStandards.length === 0 ? (
+          <div className="text-center py-12">
+            <Award className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">No hay normas ISO registradas</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="table-header">
+                  <th className="text-left py-3 px-4 font-semibold rounded-tl-md">Código</th>
+                  <th className="text-left py-3 px-4 font-semibold">Descripción</th>
+                  <th className="text-right py-3 px-4 font-semibold">Certificación</th>
+                  <th className="text-right py-3 px-4 font-semibold">Seguimiento</th>
+                  <th className="text-right py-3 px-4 font-semibold">Recertificación</th>
+                  <th className="text-center py-3 px-4 font-semibold rounded-tr-md">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {isoStandards.map((iso, index) => (
+                  <tr
+                    key={iso.id}
+                    className={`border-b border-border ${
+                      index % 2 === 0 ? 'bg-background' : 'bg-muted/30'
+                    }`}
+                  >
+                    <td className="py-3 px-4">
+                      <span className="font-semibold text-primary">{iso.code}</span>
+                    </td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground">
+                      {iso.description}
+                    </td>
+                    <td className="py-3 px-4 text-right font-medium">
+                      {formatCurrency(iso.certificationPrice)}
+                    </td>
+                    <td className="py-3 px-4 text-right font-medium">
+                      {formatCurrency(iso.followUpPrice)}
+                    </td>
+                    <td className="py-3 px-4 text-right font-medium">
+                      {formatCurrency(iso.recertificationPrice)}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center justify-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openEditDialog(iso)}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setDeleteId(iso.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {editingISO ? 'Editar Norma ISO' : 'Nueva Norma ISO'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="form-label form-label-required">Código</label>
+                <Input
+                  value={formData.code}
+                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                  placeholder="ISO 9001:2015"
+                />
+              </div>
+              <div>
+                <label className="form-label form-label-required">Nombre</label>
+                <Input
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Nombre de la norma"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="form-label">Descripción</label>
+              <Input
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Descripción breve"
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="form-label">Certificación (S/)</label>
+                <Input
+                  type="number"
+                  value={formData.certificationPrice}
+                  onChange={(e) =>
+                    setFormData({ ...formData, certificationPrice: parseFloat(e.target.value) || 0 })
+                  }
+                />
+              </div>
+              <div>
+                <label className="form-label">Seguimiento (S/)</label>
+                <Input
+                  type="number"
+                  value={formData.followUpPrice}
+                  onChange={(e) =>
+                    setFormData({ ...formData, followUpPrice: parseFloat(e.target.value) || 0 })
+                  }
+                />
+              </div>
+              <div>
+                <label className="form-label">Recertificación (S/)</label>
+                <Input
+                  type="number"
+                  value={formData.recertificationPrice}
+                  onChange={(e) =>
+                    setFormData({ ...formData, recertificationPrice: parseFloat(e.target.value) || 0 })
+                  }
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSubmit}>
+              {editingISO ? 'Guardar Cambios' : 'Agregar Norma'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar norma ISO?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. La norma se eliminará permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Layout>
+  );
+};
+
+export default Normas;
