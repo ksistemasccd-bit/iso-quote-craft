@@ -105,13 +105,10 @@ const QuotationPreview = forwardRef<HTMLDivElement, QuotationPreviewProps>(
             </div>
           </div>
 
-          {/* Divider line */}
+          {/* Divider line with Estimado on left */}
           <div className="border-b-2 border-primary mb-4"></div>
-
-          {/* Client Reference */}
-          <div className="mb-4">
-            <p className="text-sm"><span className="text-muted-foreground">Estimado/a:</span></p>
-          </div>
+          
+          <p className="text-sm mb-4"><span className="text-muted-foreground">Estimado/a:</span></p>
 
           {/* Client Info Box */}
           <div className="border-2 border-primary rounded-md p-4 mb-6">
