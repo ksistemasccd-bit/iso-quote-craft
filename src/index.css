@@ -45,10 +45,10 @@
     --success: 142 76% 36%;
     --warning: 38 92% 50%;
     
-    /* Gradient colors - Blue to Light Blue */
-    --gradient-start: 210 100% 50%;
-    --gradient-end: 210 80% 75%;
-    --gradient-light: 210 60% 90%;
+    /* Gradient colors - Deep Navy Blue */
+    --gradient-start: 210 65% 25%;
+    --gradient-end: 210 55% 35%;
+    --gradient-light: 210 40% 85%;
   }
 }
 
@@ -78,7 +78,7 @@
 
   .section-number {
     @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-md;
-    background: linear-gradient(180deg, hsl(210 100% 50%), hsl(210 80% 70%));
+    background: linear-gradient(180deg, hsl(210 65% 25%), hsl(210 55% 40%));
   }
 
   .form-label {
@@ -95,7 +95,7 @@
   }
 
   .table-header {
-    background: linear-gradient(180deg, hsl(210 100% 50%), hsl(210 80% 70%));
+    background: linear-gradient(180deg, hsl(210 65% 25%), hsl(210 55% 40%));
     @apply text-white;
   }
   
@@ -145,6 +145,6 @@
   }
   
   .bg-gradient-corporate {
-    background: linear-gradient(180deg, hsl(210 100% 50%), hsl(210 80% 70%));
+    background: linear-gradient(180deg, hsl(210 65% 25%), hsl(210 55% 40%));
   }
 }
