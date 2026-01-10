@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Eye, Trash2, Search, FileText, Download } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import { useApp } from '@/context/AppContext';
+import { useModuleStyles } from '@/context/ModuleColorsContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -28,12 +29,12 @@ import html2pdf from 'html2pdf.js';
 const Historial = () => {
   const { quotations, setQuotations } = useApp();
   const { toast } = useToast();
+  const { sectionNumberStyle, tableHeaderStyle } = useModuleStyles('historial');
   const [search, setSearch] = useState('');
   const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [downloadQuotation, setDownloadQuotation] = useState<Quotation | null>(null);
   const downloadRef = useRef<HTMLDivElement>(null);
-
   const filteredQuotations = quotations.filter(
     (q) =>
       q.code.toLowerCase().includes(search.toLowerCase()) ||
@@ -123,7 +124,7 @@ const Historial = () => {
       <div className="card-corporate">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div className="section-title mb-0">
-            <span className="section-number">
+            <span className="section-number" style={sectionNumberStyle}>
               <FileText className="w-4 h-4" />
             </span>
             <span>Historial de Cotizaciones</span>
@@ -149,7 +150,7 @@ const Historial = () => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="table-header">
+                <tr style={tableHeaderStyle}>
                   <th className="text-left py-3 px-4 font-semibold rounded-tl-md">Código</th>
                   <th className="text-left py-3 px-4 font-semibold">Cliente</th>
                   <th className="text-left py-3 px-4 font-semibold">Fecha</th>

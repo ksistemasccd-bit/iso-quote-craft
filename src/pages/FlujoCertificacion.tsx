@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import { useApp } from '@/context/AppContext';
+import { useModuleStyles } from '@/context/ModuleColorsContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,17 +22,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Edit, Trash2, GripVertical, CheckCircle2 } from 'lucide-react';
+import { Plus, Edit, Trash2, GripVertical, CheckCircle2, GitBranch } from 'lucide-react';
 import { CertificationStep } from '@/types/quotation';
 
 const FlujoCertificacion = () => {
   const { certificationSteps, addCertificationStep, updateCertificationStep, deleteCertificationStep, reorderCertificationSteps } = useApp();
+  const { sectionNumberStyle, headerStyle, colors } = useModuleStyles('flujo');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingStep, setEditingStep] = useState<CertificationStep | null>(null);
   const [deletingStepId, setDeletingStepId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ title: '' });
-
   const resetForm = () => {
     setFormData({ title: '' });
     setEditingStep(null);
@@ -97,14 +98,16 @@ const FlujoCertificacion = () => {
         <div className="flex justify-between items-center">
           <div>
             <h2 className="section-title">
-              <span className="section-number">F</span>
+              <span className="section-number" style={sectionNumberStyle}>
+                <GitBranch className="w-4 h-4" />
+              </span>
               Flujo de Certificación
             </h2>
             <p className="text-sm text-muted-foreground">
               Gestiona los pasos del flujo de certificación que aparecen en las cotizaciones
             </p>
           </div>
-          <Button onClick={openCreateDialog} className="bg-gradient-corporate hover:opacity-90">
+          <Button onClick={openCreateDialog} style={{ backgroundColor: colors.accentColor }}>
             <Plus className="mr-2 h-4 w-4" />
             Agregar Paso
           </Button>
@@ -116,10 +119,13 @@ const FlujoCertificacion = () => {
           <div className="flex flex-wrap gap-4 justify-center mb-8 p-4 bg-muted/30 rounded-lg">
             {certificationSteps.map((step) => (
               <div key={step.id} className="flex flex-col items-center text-center">
-                <div className="w-10 h-10 rounded-full bg-gradient-corporate text-white flex items-center justify-center text-sm font-bold mb-2 shadow-md">
+                <div 
+                  className="w-10 h-10 rounded-full text-white flex items-center justify-center text-sm font-bold mb-2 shadow-md"
+                  style={headerStyle}
+                >
                   {step.order}
                 </div>
-                <CheckCircle2 className="w-5 h-5 text-primary mb-1" />
+                <CheckCircle2 className="w-5 h-5 mb-1" style={{ color: colors.accentColor }} />
                 <span className="text-xs max-w-[100px] leading-tight">{step.title}</span>
               </div>
             ))}
@@ -153,7 +159,10 @@ const FlujoCertificacion = () => {
                   </Button>
                 </div>
                 <GripVertical className="w-5 h-5 text-muted-foreground" />
-                <div className="w-8 h-8 rounded-full bg-gradient-corporate text-white flex items-center justify-center text-sm font-bold">
+                <div 
+                  className="w-8 h-8 rounded-full text-white flex items-center justify-center text-sm font-bold"
+                  style={headerStyle}
+                >
                   {step.order}
                 </div>
                 <span className="flex-1 font-medium">{step.title}</span>
@@ -204,7 +213,7 @@ const FlujoCertificacion = () => {
               <Button variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleSubmit} className="bg-gradient-corporate hover:opacity-90">
+              <Button onClick={handleSubmit} style={{ backgroundColor: colors.accentColor }}>
                 {editingStep ? 'Actualizar' : 'Agregar'}
               </Button>
             </DialogFooter>

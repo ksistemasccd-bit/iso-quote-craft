@@ -1,19 +1,11 @@
-import { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Palette, Save, RotateCcw, FileText, History, Users, Settings, Building2, GitBranch, Eye, LucideIcon } from 'lucide-react';
+import { Palette, Save, RotateCcw, FileText, History, Users, Settings, Building2, GitBranch, Eye, Sparkles, LucideIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-interface ModuleColors {
-  id: string;
-  name: string;
-  primaryColor: string;
-  secondaryColor: string;
-  accentColor: string;
-}
+import { useModuleColors, themePresets } from '@/context/ModuleColorsContext';
 
 // Icon map - separado del estado para evitar problemas de serialización
 const iconMap: Record<string, LucideIcon> = {
@@ -25,58 +17,41 @@ const iconMap: Record<string, LucideIcon> = {
   flujo: GitBranch,
 };
 
-const defaultModuleColors: ModuleColors[] = [
-  { id: 'generador', name: 'Generador de Cotizaciones', primaryColor: '#1e3a5f', secondaryColor: '#2d4a6f', accentColor: '#c9a227' },
-  { id: 'historial', name: 'Historial', primaryColor: '#1e3a5f', secondaryColor: '#2d4a6f', accentColor: '#c9a227' },
-  { id: 'asesores', name: 'Asesores', primaryColor: '#1e3a5f', secondaryColor: '#2d4a6f', accentColor: '#c9a227' },
-  { id: 'normas', name: 'Normas ISO', primaryColor: '#1e3a5f', secondaryColor: '#2d4a6f', accentColor: '#c9a227' },
-  { id: 'bancos', name: 'Cuentas Bancarias', primaryColor: '#1e3a5f', secondaryColor: '#2d4a6f', accentColor: '#c9a227' },
-  { id: 'flujo', name: 'Flujo de Certificación', primaryColor: '#1e3a5f', secondaryColor: '#2d4a6f', accentColor: '#c9a227' },
-];
-
 const ConfiguracionColores = () => {
   const { toast } = useToast();
-  const [moduleColors, setModuleColors] = useState<ModuleColors[]>(() => {
-    const saved = localStorage.getItem('moduleColors');
-    return saved ? JSON.parse(saved) : defaultModuleColors;
-  });
-  const [previewModule, setPreviewModule] = useState<string | null>(null);
-
-  const handleColorChange = (moduleId: string, colorType: 'primaryColor' | 'secondaryColor' | 'accentColor', value: string) => {
-    setModuleColors(prev => 
-      prev.map(module => 
-        module.id === moduleId 
-          ? { ...module, [colorType]: value }
-          : module
-      )
-    );
-  };
+  const { 
+    moduleColors, 
+    updateModuleColor, 
+    applyThemeToAll, 
+    resetToDefaults, 
+    resetModule,
+    saveColors 
+  } = useModuleColors();
 
   const handleSave = () => {
-    localStorage.setItem('moduleColors', JSON.stringify(moduleColors));
+    saveColors();
     toast({
       title: "Colores guardados",
-      description: "La configuración de colores se ha guardado correctamente.",
+      description: "La configuración de colores se ha guardado y aplicado a todos los módulos.",
     });
   };
 
   const handleReset = () => {
-    setModuleColors(defaultModuleColors);
-    localStorage.removeItem('moduleColors');
+    resetToDefaults();
     toast({
       title: "Colores restaurados",
       description: "Se han restaurado los colores predeterminados.",
     });
   };
 
-  const handleResetModule = (moduleId: string) => {
-    const defaultModule = defaultModuleColors.find(m => m.id === moduleId);
-    if (defaultModule) {
-      setModuleColors(prev =>
-        prev.map(module =>
-          module.id === moduleId ? defaultModule : module
-        )
-      );
+  const handleApplyTheme = (themeId: string) => {
+    const theme = themePresets.find(t => t.id === themeId);
+    if (theme) {
+      applyThemeToAll(theme);
+      toast({
+        title: `Tema "${theme.name}" aplicado`,
+        description: "Los colores se han actualizado en todos los módulos.",
+      });
     }
   };
 
@@ -105,6 +80,41 @@ const ConfiguracionColores = () => {
             </Button>
           </div>
         </div>
+
+        {/* Theme Presets */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-gold" />
+              Temas Predefinidos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              {themePresets.map((theme) => (
+                <button
+                  key={theme.id}
+                  onClick={() => handleApplyTheme(theme.id)}
+                  className="group relative rounded-lg p-3 border-2 border-transparent hover:border-primary/50 transition-all hover:shadow-lg"
+                >
+                  <div 
+                    className="h-16 rounded-md mb-2 shadow-inner"
+                    style={{ 
+                      background: `linear-gradient(180deg, ${theme.colors.primaryColor}, ${theme.colors.secondaryColor})` 
+                    }}
+                  >
+                    <div 
+                      className="w-6 h-6 rounded-full absolute top-4 right-4 border-2 border-white shadow"
+                      style={{ backgroundColor: theme.colors.accentColor }}
+                    />
+                  </div>
+                  <p className="text-sm font-medium">{theme.name}</p>
+                  <p className="text-xs text-muted-foreground">{theme.description}</p>
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Color Legend */}
         <Card className="bg-muted/30">
@@ -152,13 +162,13 @@ const ConfiguracionColores = () => {
                         <Input
                           type="color"
                           value={module.primaryColor}
-                          onChange={(e) => handleColorChange(module.id, 'primaryColor', e.target.value)}
+                          onChange={(e) => updateModuleColor(module.id, 'primaryColor', e.target.value)}
                           className="w-10 h-10 p-1 cursor-pointer"
                         />
                         <Input
                           type="text"
                           value={module.primaryColor}
-                          onChange={(e) => handleColorChange(module.id, 'primaryColor', e.target.value)}
+                          onChange={(e) => updateModuleColor(module.id, 'primaryColor', e.target.value)}
                           className="text-xs h-8"
                           placeholder="#000000"
                         />
@@ -170,13 +180,13 @@ const ConfiguracionColores = () => {
                         <Input
                           type="color"
                           value={module.secondaryColor}
-                          onChange={(e) => handleColorChange(module.id, 'secondaryColor', e.target.value)}
+                          onChange={(e) => updateModuleColor(module.id, 'secondaryColor', e.target.value)}
                           className="w-10 h-10 p-1 cursor-pointer"
                         />
                         <Input
                           type="text"
                           value={module.secondaryColor}
-                          onChange={(e) => handleColorChange(module.id, 'secondaryColor', e.target.value)}
+                          onChange={(e) => updateModuleColor(module.id, 'secondaryColor', e.target.value)}
                           className="text-xs h-8"
                           placeholder="#000000"
                         />
@@ -188,13 +198,13 @@ const ConfiguracionColores = () => {
                         <Input
                           type="color"
                           value={module.accentColor}
-                          onChange={(e) => handleColorChange(module.id, 'accentColor', e.target.value)}
+                          onChange={(e) => updateModuleColor(module.id, 'accentColor', e.target.value)}
                           className="w-10 h-10 p-1 cursor-pointer"
                         />
                         <Input
                           type="text"
                           value={module.accentColor}
-                          onChange={(e) => handleColorChange(module.id, 'accentColor', e.target.value)}
+                          onChange={(e) => updateModuleColor(module.id, 'accentColor', e.target.value)}
                           className="text-xs h-8"
                           placeholder="#c9a227"
                         />
@@ -233,7 +243,7 @@ const ConfiguracionColores = () => {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => handleResetModule(module.id)}
+                      onClick={() => resetModule(module.id)}
                       className="text-xs"
                     >
                       <RotateCcw className="w-3 h-3 mr-1" />
@@ -263,7 +273,6 @@ const ConfiguracionColores = () => {
                     key={module.id}
                     className="aspect-square rounded-lg flex flex-col items-center justify-center text-white p-2 cursor-pointer hover:scale-105 transition-transform"
                     style={{ background: `linear-gradient(180deg, ${module.primaryColor}, ${module.secondaryColor})` }}
-                    onClick={() => setPreviewModule(previewModule === module.id ? null : module.id)}
                   >
                     <Icon className="w-6 h-6 mb-1" />
                     <span className="text-xs text-center leading-tight">{module.name.split(' ')[0]}</span>

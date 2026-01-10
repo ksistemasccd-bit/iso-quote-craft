@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Plus, Pencil, Trash2, Award } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import { useApp } from '@/context/AppContext';
+import { useModuleStyles } from '@/context/ModuleColorsContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -27,6 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 const Normas = () => {
   const { isoStandards, addISOStandard, updateISOStandard, deleteISOStandard } = useApp();
   const { toast } = useToast();
+  const { sectionNumberStyle, tableHeaderStyle, colors } = useModuleStyles('normas');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingISO, setEditingISO] = useState<ISOStandard | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -124,12 +126,12 @@ const Normas = () => {
       <div className="card-corporate">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div className="section-title mb-0">
-            <span className="section-number">
+            <span className="section-number" style={sectionNumberStyle}>
               <Award className="w-4 h-4" />
             </span>
             <span>Gestión de Normas ISO</span>
           </div>
-          <Button onClick={openCreateDialog} className="flex items-center gap-2">
+          <Button onClick={openCreateDialog} className="flex items-center gap-2" style={{ backgroundColor: colors.accentColor }}>
             <Plus className="w-4 h-4" />
             Nueva Norma
           </Button>
@@ -144,7 +146,7 @@ const Normas = () => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="table-header">
+                <tr style={tableHeaderStyle}>
                   <th className="text-left py-3 px-4 font-semibold rounded-tl-md">Código</th>
                   <th className="text-left py-3 px-4 font-semibold">Descripción</th>
                   <th className="text-right py-3 px-4 font-semibold">Certificación</th>

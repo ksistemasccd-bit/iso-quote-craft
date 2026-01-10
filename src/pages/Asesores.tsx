@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Users, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Users } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import { useApp } from '@/context/AppContext';
+import { useModuleStyles } from '@/context/ModuleColorsContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -27,10 +28,10 @@ import { useToast } from '@/hooks/use-toast';
 const Asesores = () => {
   const { advisors, addAdvisor, updateAdvisor, deleteAdvisor } = useApp();
   const { toast } = useToast();
+  const { sectionNumberStyle, colors } = useModuleStyles('asesores');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAdvisor, setEditingAdvisor] = useState<Advisor | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -107,12 +108,12 @@ const Asesores = () => {
       <div className="card-corporate">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div className="section-title mb-0">
-            <span className="section-number">
+            <span className="section-number" style={sectionNumberStyle}>
               <Users className="w-4 h-4" />
             </span>
             <span>Gestión de Asesores</span>
           </div>
-          <Button onClick={openCreateDialog} className="flex items-center gap-2">
+          <Button onClick={openCreateDialog} className="flex items-center gap-2" style={{ backgroundColor: colors.accentColor }}>
             <Plus className="w-4 h-4" />
             Nuevo Asesor
           </Button>
@@ -131,7 +132,10 @@ const Asesores = () => {
                 className="bg-muted/30 rounded-lg p-4 border border-border hover:border-primary/30 transition-colors"
               >
                 <div className="flex justify-between items-start mb-3">
-                  <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold">
+                  <div 
+                    className="w-10 h-10 rounded-full text-white flex items-center justify-center font-semibold"
+                    style={sectionNumberStyle}
+                  >
                     {advisor.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex gap-1">
