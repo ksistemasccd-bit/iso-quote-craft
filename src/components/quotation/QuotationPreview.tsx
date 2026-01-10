@@ -249,11 +249,30 @@ const QuotationPreview = forwardRef<HTMLDivElement, QuotationPreviewProps>(
               <h3 className="font-bold text-sm mb-3" style={{ color: moduleColors.primaryColor }}>
                 DOCUMENTO ADJUNTO: {pdfName}
               </h3>
-              <iframe
-                src={attachedPDF}
-                className="w-full h-96 border rounded"
-                title="PDF Adjunto"
-              />
+              <div className="border rounded bg-gray-50">
+                <object
+                  data={attachedPDF}
+                  type="application/pdf"
+                  className="w-full h-96"
+                >
+                  {/* Fallback for browsers that don't support object */}
+                  <embed
+                    src={attachedPDF}
+                    type="application/pdf"
+                    className="w-full h-96"
+                  />
+                </object>
+              </div>
+              <div className="mt-3 text-center">
+                <a
+                  href={attachedPDF}
+                  download={pdfName}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                  style={{ backgroundColor: moduleColors.primaryColor }}
+                >
+                  📥 Descargar PDF
+                </a>
+              </div>
             </div>
           )}
         </div>
