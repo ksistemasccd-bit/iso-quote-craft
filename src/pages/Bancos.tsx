@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { Plus, Pencil, Trash2, Building2, Upload, X } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import { useApp } from '@/context/AppContext';
+import { useModuleStyles } from '@/context/ModuleColorsContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -34,11 +35,11 @@ import { useToast } from '@/hooks/use-toast';
 const Bancos = () => {
   const { bankAccounts, addBankAccount, updateBankAccount, deleteBankAccount } = useApp();
   const { toast } = useToast();
+  const { sectionNumberStyle, colors } = useModuleStyles('bancos');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBank, setEditingBank] = useState<BankAccount | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [formData, setFormData] = useState({
     bankName: '',
     accountHolder: '',
@@ -154,12 +155,12 @@ const Bancos = () => {
       <div className="card-corporate">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div className="section-title mb-0">
-            <span className="section-number">
+            <span className="section-number" style={sectionNumberStyle}>
               <Building2 className="w-4 h-4" />
             </span>
             <span>Gestión de Cuentas Bancarias</span>
           </div>
-          <Button onClick={openCreateDialog} className="flex items-center gap-2">
+          <Button onClick={openCreateDialog} className="flex items-center gap-2" style={{ backgroundColor: colors.accentColor }}>
             <Plus className="w-4 h-4" />
             Nueva Cuenta
           </Button>
