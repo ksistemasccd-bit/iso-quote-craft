@@ -10,7 +10,12 @@ export function dataUrlToUint8Array(dataUrl: string): Uint8Array {
 }
 
 export function downloadPdfBytes(bytes: Uint8Array, filename: string) {
-  const blob = new Blob([bytes], { type: 'application/pdf' });
+  // Copy bytes to ensure we have a proper ArrayBuffer (fixes TypeScript compatibility)
+  const buffer = new ArrayBuffer(bytes.length);
+  const view = new Uint8Array(buffer);
+  view.set(bytes);
+  
+  const blob = new Blob([buffer], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
