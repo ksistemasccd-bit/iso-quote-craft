@@ -41,8 +41,7 @@ export interface ClientData {
   celular: string;
   correo: string;
   asesorId: string;
-  year: number;
-  month: string;
+  fecha: Date;
   codigo: string;
 }
 

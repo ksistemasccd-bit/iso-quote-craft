@@ -20,7 +20,7 @@ interface AppContextType {
   updateAdvisor: (advisor: Advisor) => void;
   deleteAdvisor: (id: string) => void;
   addQuotation: (quotation: Quotation) => void;
-  getNextQuotationCode: (year: number, month: string) => string;
+  getNextQuotationCode: (fecha: Date) => string;
   addBankAccount: (bank: BankAccount) => void;
   updateBankAccount: (bank: BankAccount) => void;
   deleteBankAccount: (id: string) => void;
@@ -110,7 +110,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setQuotations((prev) => [...prev, quotation]);
   };
 
-  const getNextQuotationCode = (year: number, month: string): string => {
+  const getNextQuotationCode = (fecha: Date): string => {
+    const year = fecha.getFullYear();
+    const month = (fecha.getMonth() + 1).toString().padStart(2, '0');
     const prefix = `COT-${year}-${month}-`;
     const existingCodes = quotations
       .filter((q) => q.code.startsWith(prefix))

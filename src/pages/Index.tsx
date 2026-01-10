@@ -24,8 +24,7 @@ const Index = () => {
   const previewRef = useRef<HTMLDivElement>(null);
   const [showPreview, setShowPreview] = useState(false);
 
-  const currentYear = new Date().getFullYear();
-  const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, '0');
+  const currentDate = new Date();
 
   const [clientData, setClientData] = useState<ClientData>({
     ruc: '',
@@ -34,9 +33,8 @@ const Index = () => {
     celular: '',
     correo: '',
     asesorId: '',
-    year: currentYear,
-    month: currentMonth,
-    codigo: getNextQuotationCode(currentYear, currentMonth),
+    fecha: currentDate,
+    codigo: getNextQuotationCode(currentDate),
   });
 
   const [selectedISOs, setSelectedISOs] = useState<SelectedISO[]>([]);

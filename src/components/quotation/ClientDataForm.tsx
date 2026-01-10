@@ -1,6 +1,16 @@
 import { useApp } from '@/context/AppContext';
 import { ClientData } from '@/types/quotation';
-import { months } from '@/data/initialData';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -17,13 +27,11 @@ interface ClientDataFormProps {
 const ClientDataForm = ({ data, onChange }: ClientDataFormProps) => {
   const { advisors, getNextQuotationCode } = useApp();
 
-  const handleChange = (field: keyof ClientData, value: string | number) => {
+  const handleChange = (field: keyof ClientData, value: string | Date) => {
     const newData = { ...data, [field]: value };
     
-    if (field === 'year' || field === 'month') {
-      const year = field === 'year' ? (value as number) : data.year;
-      const month = field === 'month' ? (value as string) : data.month;
-      newData.codigo = getNextQuotationCode(year, month);
+    if (field === 'fecha') {
+      newData.codigo = getNextQuotationCode(value as Date);
     }
     
     onChange(newData);
@@ -116,49 +124,40 @@ const ClientDataForm = ({ data, onChange }: ClientDataFormProps) => {
         </div>
 
         <div>
-          <label className="form-label form-label-required">Año</label>
-          <input
-            type="number"
-            value={data.year}
-            onChange={(e) => handleChange('year', parseInt(e.target.value))}
-            className="input-corporate"
-            min={2024}
-            max={2100}
-          />
+          <label className="form-label form-label-required">Fecha</label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal input-corporate",
+                  !data.fecha && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {data.fecha ? format(data.fecha, "PPP", { locale: es }) : <span>Seleccione fecha</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={data.fecha}
+                onSelect={(date) => date && handleChange('fecha', date)}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div>
-          <label className="form-label form-label-required">Mes</label>
-          <Select
-            value={data.month}
-            onValueChange={(value) => handleChange('month', value)}
-          >
-            <SelectTrigger className="input-corporate">
-              <SelectValue placeholder="Seleccione mes" />
-            </SelectTrigger>
-            <SelectContent>
-              {months.map((month) => (
-                <SelectItem key={month.value} value={month.value}>
-                  {month.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="md:col-span-2">
-          <label className="form-label form-label-required">Código (5 cifras)</label>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              COT-{data.year}-{data.month}-
-            </span>
-            <input
-              type="text"
-              value={data.codigo.split('-').pop() || '00001'}
-              className="input-corporate w-24"
-              readOnly
-            />
-          </div>
+          <label className="form-label form-label-required">Código</label>
+          <input
+            type="text"
+            value={data.codigo}
+            className="input-corporate"
+            readOnly
+          />
         </div>
       </div>
     </div>
