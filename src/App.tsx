@@ -10,6 +10,7 @@ import Asesores from "./pages/Asesores";
 import Normas from "./pages/Normas";
 import Bancos from "./pages/Bancos";
 import FlujoCertificacion from "./pages/FlujoCertificacion";
+import ConfiguracionColores from "./pages/ConfiguracionColores";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/normas" element={<Normas />} />
             <Route path="/bancos" element={<Bancos />} />
             <Route path="/flujo-certificacion" element={<FlujoCertificacion />} />
+            <Route path="/configuracion-colores" element={<ConfiguracionColores />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
