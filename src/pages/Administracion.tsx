@@ -4,34 +4,63 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Upload, Users, Settings, Building2, GitBranch, Lock, ShieldCheck } from 'lucide-react';
+import { Upload, Users, Settings, Building2, GitBranch, Lock, ShieldCheck, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import Layout from '@/components/layout/Layout';
-
-const ADMIN_CODE = 'CcD2027@ok@2';
 
 const Administracion = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [code, setCode] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (code === ADMIN_CODE) {
-      setIsAuthenticated(true);
+    
+    if (!code.trim()) {
       toast({
-        title: "Acceso concedido",
-        description: "Bienvenido al panel de administración",
-      });
-    } else {
-      toast({
-        title: "Acceso denegado",
-        description: "Código incorrecto. Contacte con el administrador.",
+        title: "Error",
+        description: "Ingrese el código de seguridad",
         variant: "destructive",
       });
+      return;
     }
-    setCode('');
+
+    setIsLoading(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-admin-code', {
+        body: { code: code.trim() }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        setIsAuthenticated(true);
+        toast({
+          title: "Acceso concedido",
+          description: "Bienvenido al panel de administración",
+        });
+      } else {
+        toast({
+          title: "Acceso denegado",
+          description: data.message || "Código incorrecto. Contacte con el administrador.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error verifying code:', error);
+      toast({
+        title: "Error",
+        description: "Error al verificar el código. Intente nuevamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+      setCode('');
+    }
   };
 
   const adminOptions = [
@@ -69,9 +98,13 @@ const Administracion = () => {
                     className="text-center text-lg tracking-widest"
                   />
                 </div>
-                <Button type="submit" className="w-full">
-                  <ShieldCheck className="w-4 h-4 mr-2" />
-                  Ingresar
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <ShieldCheck className="w-4 h-4 mr-2" />
+                  )}
+                  {isLoading ? 'Verificando...' : 'Ingresar'}
                 </Button>
               </form>
             </CardContent>
