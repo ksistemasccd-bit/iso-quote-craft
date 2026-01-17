@@ -247,6 +247,12 @@ export type Database = {
           discount: number
           id: string
           igv: number
+          implementation_company_size: string | null
+          implementation_enabled: boolean
+          implementation_quantity: number
+          implementation_total: number
+          implementation_unit_price: number
+          include_igv: boolean
           status: string
           subtotal: number
           total: number
@@ -265,6 +271,12 @@ export type Database = {
           discount?: number
           id?: string
           igv?: number
+          implementation_company_size?: string | null
+          implementation_enabled?: boolean
+          implementation_quantity?: number
+          implementation_total?: number
+          implementation_unit_price?: number
+          include_igv?: boolean
           status?: string
           subtotal?: number
           total?: number
@@ -283,6 +295,12 @@ export type Database = {
           discount?: number
           id?: string
           igv?: number
+          implementation_company_size?: string | null
+          implementation_enabled?: boolean
+          implementation_quantity?: number
+          implementation_total?: number
+          implementation_unit_price?: number
+          include_igv?: boolean
           status?: string
           subtotal?: number
           total?: number

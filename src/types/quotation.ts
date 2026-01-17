@@ -47,6 +47,13 @@ export interface ClientData {
   codigo: string;
 }
 
+export interface ImplementationData {
+  enabled: boolean;
+  companySize: 'pequeña' | 'mediana' | 'grande';
+  unitPrice: number;
+  quantity: number;
+}
+
 export interface Quotation {
   id: string;
   code: string;
@@ -58,6 +65,9 @@ export interface Quotation {
   discount: number;
   total: number;
   status: 'draft' | 'sent' | 'approved' | 'rejected';
+  includeIGV?: boolean;
+  implementation?: ImplementationData;
+  implementationTotal?: number;
 }
 
 export interface QuotationSummaryItem {

@@ -63,6 +63,12 @@ interface DbQuotation {
   status: string;
   created_at: string;
   updated_at: string;
+  include_igv: boolean;
+  implementation_enabled: boolean;
+  implementation_company_size: string | null;
+  implementation_unit_price: number;
+  implementation_quantity: number;
+  implementation_total: number;
 }
 
 interface DbQuotationISO {
@@ -528,6 +534,14 @@ export const useQuotations = () => {
         discount: Number(q.discount),
         total: Number(q.total),
         status: q.status as 'draft' | 'sent' | 'approved' | 'rejected',
+        includeIGV: q.include_igv,
+        implementation: {
+          enabled: q.implementation_enabled,
+          companySize: (q.implementation_company_size || 'pequeña') as 'pequeña' | 'mediana' | 'grande',
+          unitPrice: Number(q.implementation_unit_price),
+          quantity: q.implementation_quantity,
+        },
+        implementationTotal: Number(q.implementation_total),
       });
     }
     
@@ -553,6 +567,12 @@ export const useQuotations = () => {
         discount: quotation.discount,
         total: quotation.total,
         status: quotation.status,
+        include_igv: quotation.includeIGV ?? true,
+        implementation_enabled: quotation.implementation?.enabled ?? false,
+        implementation_company_size: quotation.implementation?.companySize ?? 'pequeña',
+        implementation_unit_price: quotation.implementation?.unitPrice ?? 0,
+        implementation_quantity: quotation.implementation?.quantity ?? 1,
+        implementation_total: quotation.implementationTotal ?? 0,
       })
       .select()
       .single();
