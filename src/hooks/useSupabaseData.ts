@@ -20,6 +20,8 @@ interface DbAdvisor {
   name: string;
   email: string | null;
   phone: string | null;
+  username: string | null;
+  password_hash: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -103,6 +105,7 @@ const mapDbToAdvisor = (db: DbAdvisor): Advisor => ({
   name: db.name,
   email: db.email || '',
   phone: db.phone || '',
+  username: db.username || undefined,
 });
 
 const mapDbToBankAccount = (db: DbBankAccount): BankAccount => ({
