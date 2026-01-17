@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import { useApp } from '@/context/AppContext';
-import { ClientData, SelectedISO } from '@/types/quotation';
+import { ClientData, SelectedISO, ImplementationData } from '@/types/quotation';
 import { ModuleColors } from '@/context/ModuleColorsContext';
 import { numeroALetras } from '@/utils/numberToWords';
 import { CheckCircle2 } from 'lucide-react';
@@ -21,10 +21,12 @@ interface QuotationPreviewProps {
    * Solo para vista en pantalla. Para descargar el PDF final (unido) se recomienda ocultarlo.
    */
   showAttachment?: boolean;
+  includeIGV?: boolean;
+  implementation?: ImplementationData;
 }
 
 const QuotationPreview = forwardRef<HTMLDivElement, QuotationPreviewProps>(
-  ({ client, selectedISOs, discount, moduleColors, showAttachment = true }, ref) => {
+  ({ client, selectedISOs, discount, moduleColors, showAttachment = true, includeIGV = true, implementation }, ref) => {
     const { isoStandards, bankAccounts, certificationSteps } = useApp();
 
     // Get attached PDF + custom background image from localStorage
@@ -59,10 +61,19 @@ const QuotationPreview = forwardRef<HTMLDivElement, QuotationPreviewProps>(
       return sum + total;
     }, 0);
 
-    const igv = subtotal * 0.18;
-    const totalConIGV = subtotal + igv;
-    const discountAmount = totalConIGV * (discount / 100);
-    const finalTotal = totalConIGV - discountAmount;
+    const igv = includeIGV ? subtotal * 0.18 : 0;
+    const totalCertificacion = subtotal + igv;
+    const implementationTotal = implementation?.enabled 
+      ? implementation.unitPrice * implementation.quantity 
+      : 0;
+    const totalGeneral = totalCertificacion + implementationTotal;
+    const finalTotal = totalGeneral - discount;
+
+    const companySizeLabels = {
+      'pequeña': 'Pequeña',
+      'mediana': 'Mediana',
+      'grande': 'Grande',
+    };
 
     const formatCurrency = (amount: number) => {
       return `S/ ${amount.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -172,21 +183,62 @@ const QuotationPreview = forwardRef<HTMLDivElement, QuotationPreviewProps>(
             </tbody>
           </table>
 
+          {/* Implementation Service Section */}
+          {implementation?.enabled && (
+            <div className="mb-4 p-4 rounded-md bg-white/80" style={{ border: `2px solid ${moduleColors.primaryColor}` }}>
+              <h3 className="font-bold text-sm mb-3" style={{ color: moduleColors.primaryColor }}>
+                SERVICIO DE IMPLEMENTACIÓN
+              </h3>
+              <div className="text-sm space-y-1">
+                <div className="flex justify-between">
+                  <span>Tamaño de empresa:</span>
+                  <span className="font-semibold">{companySizeLabels[implementation.companySize]}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Precio unitario:</span>
+                  <span className="font-semibold">{formatCurrency(implementation.unitPrice)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Cantidad:</span>
+                  <span className="font-semibold">{implementation.quantity}</span>
+                </div>
+                <div className="flex justify-between pt-2 border-t border-border">
+                  <span className="font-bold">Total Implementación:</span>
+                  <span className="font-bold" style={{ color: moduleColors.primaryColor }}>
+                    {formatCurrency(implementationTotal)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Totals */}
           <div className="flex justify-end mb-6">
-            <div className="w-72 text-sm">
+            <div className="w-80 text-sm">
               <div className="flex justify-between py-1 border-b border-border bg-white/80 px-2">
-                <span>SUB TOTAL</span>
+                <span>SUB TOTAL CERTIFICACIÓN</span>
                 <span className="font-semibold">{formatCurrency(subtotal)}</span>
               </div>
+              {includeIGV && (
+                <div className="flex justify-between py-1 border-b border-border bg-white/80 px-2">
+                  <span>IGV (18%)</span>
+                  <span className="font-semibold">{formatCurrency(igv)}</span>
+                </div>
+              )}
               <div className="flex justify-between py-1 border-b border-border bg-white/80 px-2">
-                <span>TARIFA TOTAL INCLUIDO IGV</span>
-                <span className="font-semibold">{formatCurrency(totalConIGV)}</span>
+                <span>TOTAL CERTIFICACIÓN {includeIGV ? '(CON IGV)' : '(SIN IGV)'}</span>
+                <span className="font-semibold">{formatCurrency(totalCertificacion)}</span>
               </div>
+              {implementation?.enabled && (
+                <div className="flex justify-between py-1 border-b border-border bg-white/80 px-2">
+                  <span>TOTAL IMPLEMENTACIÓN</span>
+                  <span className="font-semibold">{formatCurrency(implementationTotal)}</span>
+                </div>
+              )}
               {discount > 0 && (
                 <div className="flex justify-between py-1 border-b border-border bg-white/80 px-2">
-                  <span>DESCUENTO ({discount}%)</span>
-                  <span className="font-semibold text-destructive">- {formatCurrency(discountAmount)}</span>
+                  <span>DESCUENTO</span>
+                  <span className="font-semibold text-destructive">- {formatCurrency(discount)}</span>
                 </div>
               )}
               <div className="flex justify-between py-2 text-white font-bold" style={headerStyle}>

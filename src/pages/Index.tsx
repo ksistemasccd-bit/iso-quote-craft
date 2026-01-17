@@ -181,6 +181,9 @@ const Index = () => {
       discount,
       total: finalTotal,
       status: 'draft',
+      includeIGV,
+      implementation,
+      implementationTotal,
     });
 
     // Also download PDF when saving
@@ -263,6 +266,9 @@ const Index = () => {
           discount,
           total: finalTotal,
           status: 'draft',
+          includeIGV,
+          implementation,
+          implementationTotal,
         });
 
         setShowPreview(false);
@@ -349,6 +355,8 @@ const Index = () => {
             selectedISOs={selectedISOs}
             discount={discount}
             moduleColors={styles.colors}
+            includeIGV={includeIGV}
+            implementation={implementation}
           />
           <DialogFooter className="flex gap-2 mt-4">
             <Button variant="outline" onClick={() => setShowPreview(false)}>
@@ -371,6 +379,8 @@ const Index = () => {
           discount={discount}
           moduleColors={styles.colors}
           showAttachment={false}
+          includeIGV={includeIGV}
+          implementation={implementation}
         />
       </div>
     </Layout>
