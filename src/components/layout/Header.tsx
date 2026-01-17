@@ -22,8 +22,8 @@ const Header = () => {
     { path: '/configuracion-colores', label: 'Colores', icon: Palette },
   ];
 
-  const handleSignOut = async () => {
-    await signOut();
+  const handleSignOut = () => {
+    signOut();
   };
 
   return (
@@ -67,32 +67,34 @@ const Header = () => {
             </nav>
 
             {/* User Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  className="flex items-center gap-2 text-white hover:bg-white/10 hover:text-white"
-                >
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                    <User className="w-4 h-4" />
+            {advisor && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className="flex items-center gap-2 text-white hover:bg-white/10 hover:text-white"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                      <User className="w-4 h-4" />
+                    </div>
+                    <span className="hidden sm:inline text-sm font-medium">
+                      {advisor.name}
+                    </span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-2 py-1.5">
+                    <p className="text-sm font-medium">{advisor.name}</p>
+                    <p className="text-xs text-muted-foreground">@{advisor.username}</p>
                   </div>
-                  <span className="hidden sm:inline text-sm font-medium">
-                    {advisor?.name || 'Usuario'}
-                  </span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{advisor?.name}</p>
-                  <p className="text-xs text-muted-foreground">{advisor?.email}</p>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Cerrar Sesión
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Cerrar Sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
       </div>

@@ -13,6 +13,7 @@ export interface Advisor {
   name: string;
   email: string;
   phone: string;
+  username?: string;
 }
 
 export interface BankAccount {

@@ -1,140 +1,80 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
 import { Advisor } from '@/types/quotation';
+import { supabase } from '@/integrations/supabase/client';
+
+interface AdvisorSession {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  username: string;
+}
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  advisor: Advisor | null;
+  advisor: AdvisorSession | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, advisorData: { name: string; phone: string }) => Promise<{ error: Error | null }>;
-  signOut: () => Promise<void>;
+  signIn: (username: string, password: string) => Promise<{ error: string | null }>;
+  signOut: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const STORAGE_KEY = 'advisor_session';
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [advisor, setAdvisor] = useState<Advisor | null>(null);
+  const [advisor, setAdvisor] = useState<AdvisorSession | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchAdvisor = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('advisors')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-    
-    if (data && !error) {
-      setAdvisor({
-        id: data.id,
-        name: data.name,
-        email: data.email || '',
-        phone: data.phone || '',
-      });
-    } else {
-      setAdvisor(null);
-    }
-  };
-
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        // Defer advisor fetch with setTimeout to avoid deadlock
-        if (session?.user) {
-          setTimeout(() => {
-            fetchAdvisor(session.user.id);
-          }, 0);
-        } else {
-          setAdvisor(null);
-        }
-        setLoading(false);
+    // Check for existing session in localStorage
+    const storedSession = localStorage.getItem(STORAGE_KEY);
+    if (storedSession) {
+      try {
+        const parsed = JSON.parse(storedSession);
+        setAdvisor(parsed);
+      } catch {
+        localStorage.removeItem(STORAGE_KEY);
       }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchAdvisor(session.user.id);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    }
+    setLoading(false);
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error: error as Error | null };
-  };
+  const signIn = async (username: string, password: string): Promise<{ error: string | null }> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('advisor-auth', {
+        body: { action: 'login', username, password },
+      });
 
-  const signUp = async (
-    email: string,
-    password: string,
-    advisorData: { name: string; phone: string }
-  ) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-      },
-    });
-
-    if (authError) {
-      return { error: authError as Error };
-    }
-
-    if (authData.user) {
-      // Create advisor record linked to this user
-      const { error: advisorError } = await supabase
-        .from('advisors')
-        .insert({
-          name: advisorData.name,
-          email: email,
-          phone: advisorData.phone,
-          user_id: authData.user.id,
-        });
-
-      if (advisorError) {
-        return { error: advisorError as Error };
+      if (error) {
+        return { error: 'Error de conexión. Intente nuevamente.' };
       }
-    }
 
-    return { error: null };
+      if (!data.success) {
+        return { error: data.message || 'Error de autenticación' };
+      }
+
+      // Save session
+      setAdvisor(data.advisor);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data.advisor));
+      
+      return { error: null };
+    } catch (err) {
+      console.error('Sign in error:', err);
+      return { error: 'Error inesperado. Intente nuevamente.' };
+    }
   };
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setSession(null);
+  const signOut = () => {
     setAdvisor(null);
+    localStorage.removeItem(STORAGE_KEY);
   };
 
   return (
     <AuthContext.Provider
       value={{
-        user,
-        session,
         advisor,
         loading,
         signIn,
-        signUp,
         signOut,
       }}
     >
