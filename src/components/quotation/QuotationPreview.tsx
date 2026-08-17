@@ -291,7 +291,7 @@ const QuotationPreview = forwardRef<HTMLDivElement, QuotationPreviewProps>(
                   <div className="text-sm">
                     <p className="font-bold" style={{ color: moduleColors.primaryColor }}>{bank.accountHolder}</p>
                     <p className="text-muted-foreground">
-                      Cuenta corriente en {bank.currency}: N° {bank.accountNumber}
+                      Cuenta {bank.accountType === 'ahorro' ? 'de ahorro' : 'corriente'} en {bank.currency}: N° {bank.accountNumber}
                     </p>
                     <p className="text-muted-foreground">CCI: {bank.cci}</p>
                   </div>

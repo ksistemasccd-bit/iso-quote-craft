@@ -37,6 +37,7 @@ const Bancos = () => {
     accountNumber: '',
     cci: '',
     currency: 'soles' as 'soles' | 'dolares',
+    accountType: 'corriente' as 'corriente' | 'ahorro',
     logo: '' as string,
   });
 
@@ -47,6 +48,7 @@ const Bancos = () => {
       accountNumber: '',
       cci: '',
       currency: 'soles',
+      accountType: 'corriente',
       logo: '',
     });
     setEditingBank(null);
@@ -91,6 +93,7 @@ const Bancos = () => {
       accountNumber: bank.accountNumber,
       cci: bank.cci,
       currency: bank.currency,
+      accountType: bank.accountType || 'corriente',
       logo: bank.logo || '',
     });
     setIsDialogOpen(true);
@@ -198,7 +201,7 @@ const Bancos = () => {
                 <h3 className="font-semibold text-lg mb-1">{bank.bankName}</h3>
                 <p className="text-sm font-medium text-primary mb-2">{bank.accountHolder}</p>
                 <div className="space-y-1 text-sm text-muted-foreground">
-                  <p>Cuenta corriente en {bank.currency}: N° {bank.accountNumber}</p>
+                  <p>Cuenta {bank.accountType === 'ahorro' ? 'de ahorro' : 'corriente'} en {bank.currency}: N° {bank.accountNumber}</p>
                   <p>CCI: {bank.cci}</p>
                 </div>
               </div>
@@ -241,6 +244,23 @@ const Bancos = () => {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div>
+              <label className="form-label">Tipo de Cuenta</label>
+              <Select
+                value={formData.accountType}
+                onValueChange={(value: 'corriente' | 'ahorro') =>
+                  setFormData({ ...formData, accountType: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="corriente">Cuenta corriente</SelectItem>
+                  <SelectItem value="ahorro">Cuenta de ahorro</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <label className="form-label form-label-required">Titular de la Cuenta</label>
