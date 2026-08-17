@@ -36,6 +36,7 @@ interface DbBankAccount {
   account_number: string;
   cci: string | null;
   currency: string;
+  account_type?: string | null;
   logo_url: string | null;
   created_at: string;
   updated_at: string;
@@ -125,6 +126,7 @@ const mapDbToBankAccount = (db: DbBankAccount): BankAccount => ({
   accountNumber: db.account_number,
   cci: db.cci || '',
   currency: db.currency as 'soles' | 'dolares',
+  accountType: (db.account_type as 'corriente' | 'ahorro') || 'corriente',
   logo: db.logo_url || undefined,
 });
 
@@ -361,6 +363,7 @@ export const useBankAccounts = () => {
         account_number: bank.accountNumber,
         cci: bank.cci,
         currency: bank.currency,
+        account_type: bank.accountType || 'corriente',
         logo_url: bank.logo,
       })
       .select()
@@ -384,6 +387,7 @@ export const useBankAccounts = () => {
         account_number: bank.accountNumber,
         cci: bank.cci,
         currency: bank.currency,
+        account_type: bank.accountType || 'corriente',
         logo_url: bank.logo,
       })
       .eq('id', bank.id);
